@@ -33,7 +33,7 @@ namespace libaxolotl
     public class IdentityKey
     {
 
-        private ECPublicKey publicKey;
+        private ECPublicKey publicKey { get; set; }
 
         public IdentityKey(ECPublicKey publicKey)
         {

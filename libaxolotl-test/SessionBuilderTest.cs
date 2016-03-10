@@ -99,7 +99,7 @@ namespace libaxolotl_test
             }
             catch (UntrustedIdentityException uie)
             {
-                bobStore.SaveIdentity(ALICE_ADDRESS.getName(), new PreKeyWhisperMessage(outgoingMessage.serialize()).getIdentityKey());
+                bobStore.SaveIdentity(ALICE_ADDRESS.Name, new PreKeyWhisperMessage(outgoingMessage.serialize()).getIdentityKey());
             }
 
             plaintext = bobSessionCipher.decrypt(new PreKeyWhisperMessage(outgoingMessage.serialize()));
@@ -196,7 +196,7 @@ namespace libaxolotl_test
             }
             catch (UntrustedIdentityException uie)
             {
-                bobStore.SaveIdentity(ALICE_ADDRESS.getName(), new PreKeyWhisperMessage(outgoingMessage.serialize()).getIdentityKey());
+                bobStore.SaveIdentity(ALICE_ADDRESS.Name, new PreKeyWhisperMessage(outgoingMessage.serialize()).getIdentityKey());
             }
 
             plaintext = bobSessionCipher.decrypt(new PreKeyWhisperMessage(outgoingMessage.serialize()));
@@ -469,7 +469,7 @@ namespace libaxolotl_test
             }
             catch (UntrustedIdentityException uie)
             {
-                bobStore.SaveIdentity(ALICE_ADDRESS.getName(), aliceKeyExchangeMessage.getIdentityKey());
+                bobStore.SaveIdentity(ALICE_ADDRESS.Name, aliceKeyExchangeMessage.getIdentityKey());
                 bobKeyExchangeMessage = bobSessionBuilder.process(aliceKeyExchangeMessage);
             }
 

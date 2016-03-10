@@ -131,7 +131,7 @@ namespace libaxolotl.protocol
             byte[] ourMac = getMac(messageVersion, senderIdentityKey, receiverIdentityKey, macKey, parts[0]);
             byte[] theirMac = parts[1];
 
-            if (!Enumerable.SequenceEqual(ourMac, theirMac))
+            if (!ourMac.SequenceEqual(theirMac))
             {
                 throw new InvalidMessageException("Bad Mac!");
             }

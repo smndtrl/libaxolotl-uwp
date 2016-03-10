@@ -109,9 +109,9 @@ namespace libaxolotl
 
             May<uint> unsignedPreKeyId;
 
-            if (!identityKeyStore.IsTrustedIdentity(remoteAddress.getName(), theirIdentityKey))
+            if (!identityKeyStore.IsTrustedIdentity(remoteAddress.Name, theirIdentityKey))
             {
-                throw new UntrustedIdentityException(remoteAddress.getName(), theirIdentityKey);
+                throw new UntrustedIdentityException(remoteAddress.Name, theirIdentityKey);
             }
 
             switch (messageVersion)
@@ -121,7 +121,7 @@ namespace libaxolotl
                 default: throw new Exception("Unknown version: " + messageVersion);
             }
 
-            identityKeyStore.SaveIdentity(remoteAddress.getName(), theirIdentityKey);
+            identityKeyStore.SaveIdentity(remoteAddress.Name, theirIdentityKey);
             return unsignedPreKeyId;
         }
 
@@ -229,9 +229,9 @@ namespace libaxolotl
         {
             lock (SessionCipher.SESSION_LOCK)
             {
-                if (!identityKeyStore.IsTrustedIdentity(remoteAddress.getName(), preKey.getIdentityKey()))
+                if (!identityKeyStore.IsTrustedIdentity(remoteAddress.Name, preKey.getIdentityKey()))
                 {
-                    throw new UntrustedIdentityException(remoteAddress.getName(), preKey.getIdentityKey());
+                    throw new UntrustedIdentityException(remoteAddress.Name, preKey.getIdentityKey());
                 }
 
                 if (preKey.getSignedPreKey() != null &&
@@ -277,7 +277,7 @@ namespace libaxolotl
                 sessionRecord.getSessionState().setAliceBaseKey(ourBaseKey.getPublicKey().serialize());
 
                 sessionStore.StoreSession(remoteAddress, sessionRecord);
-                identityKeyStore.SaveIdentity(remoteAddress.getName(), preKey.getIdentityKey());
+                identityKeyStore.SaveIdentity(remoteAddress.Name, preKey.getIdentityKey());
             }
         }
 
@@ -294,9 +294,9 @@ namespace libaxolotl
         {
             lock (SessionCipher.SESSION_LOCK)
             {
-                if (!identityKeyStore.IsTrustedIdentity(remoteAddress.getName(), message.getIdentityKey()))
+                if (!identityKeyStore.IsTrustedIdentity(remoteAddress.Name, message.getIdentityKey()))
                 {
-                    throw new UntrustedIdentityException(remoteAddress.getName(), message.getIdentityKey());
+                    throw new UntrustedIdentityException(remoteAddress.Name, message.getIdentityKey());
                 }
 
                 KeyExchangeMessage responseMessage = null;
@@ -350,7 +350,7 @@ namespace libaxolotl
                                                 parameters);
 
             sessionStore.StoreSession(remoteAddress, sessionRecord);
-            identityKeyStore.SaveIdentity(remoteAddress.getName(), message.getIdentityKey());
+            identityKeyStore.SaveIdentity(remoteAddress.Name, message.getIdentityKey());
 
             byte[] baseKeySignature = Curve.calculateSignature(parameters.getOurIdentityKey().getPrivateKey(),
                                                                parameters.getOurBaseKey().getPublicKey().serialize());
@@ -400,7 +400,7 @@ namespace libaxolotl
             }
 
             sessionStore.StoreSession(remoteAddress, sessionRecord);
-            identityKeyStore.SaveIdentity(remoteAddress.getName(), message.getIdentityKey());
+            identityKeyStore.SaveIdentity(remoteAddress.Name, message.getIdentityKey());
 
         }
 

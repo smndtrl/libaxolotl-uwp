@@ -26,43 +26,31 @@ namespace libaxolotl
     public class AxolotlAddress
     {
 
-        private readonly String name;
-        private readonly uint deviceId;
+        public string Name { get; }
+        public uint DeviceId { get; }
 
-        public AxolotlAddress(String name, uint deviceId)
+        public AxolotlAddress(string name, uint deviceId)
         {
-            this.name = name;
-            this.deviceId = deviceId;
+            this.Name = name;
+            this.DeviceId = deviceId;
         }
 
-        public String getName()
+        public override string ToString()
         {
-            return name;
+            return Name + ":" + DeviceId;
         }
 
-        public uint getDeviceId()
+        public override bool Equals(object other)
         {
-            return deviceId;
-        }
-
-        public override String ToString()
-        {
-            return name + ":" + deviceId;
-        }
-
-        public override bool Equals(Object other)
-        {
-            if (other == null) return false;
             if (!(other is AxolotlAddress)) return false;
 
             AxolotlAddress that = (AxolotlAddress)other;
-            return this.name.Equals(that.name) && this.deviceId == that.deviceId;
+            return this.Name.Equals(that.Name) && this.DeviceId == that.DeviceId;
         }
-
 
         public override int GetHashCode()
         {
-            return this.name.GetHashCode() ^ (int)this.deviceId;
+            return this.Name.GetHashCode() ^ (int)this.DeviceId;
         }
     }
 }
