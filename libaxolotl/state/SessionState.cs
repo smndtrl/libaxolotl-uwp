@@ -460,7 +460,7 @@ namespace libaxolotl.state
 		public void setUnacknowledgedPreKeyMessage(May<uint> preKeyId, uint signedPreKeyId, ECPublicKey baseKey)
 		{
 			PendingPreKey.Builder pending = PendingPreKey.CreateBuilder()
-														 .SetSignedPreKeyId(signedPreKeyId)
+														 .SetSignedPreKeyId((int)signedPreKeyId)
 														 .SetBaseKey(ByteString.CopyFrom(baseKey.serialize()));
 
 			if (preKeyId.HasValue)
@@ -495,7 +495,7 @@ namespace libaxolotl.state
 
 				return
 					new UnacknowledgedPreKeyMessageItems(preKeyId,
-														 sessionStructure.PendingPreKey.SignedPreKeyId,
+														 (uint)sessionStructure.PendingPreKey.SignedPreKeyId,
 														 Curve.decodePoint(sessionStructure.PendingPreKey
 																						   .BaseKey
 																						   .ToByteArray(), 0));

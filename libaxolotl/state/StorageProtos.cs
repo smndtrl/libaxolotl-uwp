@@ -81,7 +81,7 @@ namespace libaxolotl.state {
             "YWxSYXRjaGV0S2V5UHJpdmF0ZRgFIAEoDBIYChBsb2NhbElkZW50aXR5S2V5", 
             "GAcgASgMEh8KF2xvY2FsSWRlbnRpdHlLZXlQcml2YXRlGAggASgMGkoKDVBl", 
             "bmRpbmdQcmVLZXkSEAoIcHJlS2V5SWQYASABKA0SFgoOc2lnbmVkUHJlS2V5", 
-            "SWQYAyABKA0SDwoHYmFzZUtleRgCIAEoDCJ/Cg9SZWNvcmRTdHJ1Y3R1cmUS", 
+            "SWQYAyABKAUSDwoHYmFzZUtleRgCIAEoDCJ/Cg9SZWNvcmRTdHJ1Y3R1cmUS", 
             "NAoOY3VycmVudFNlc3Npb24YASABKAsyHC50ZXh0c2VjdXJlLlNlc3Npb25T", 
             "dHJ1Y3R1cmUSNgoQcHJldmlvdXNTZXNzaW9ucxgCIAMoCzIcLnRleHRzZWN1", 
             "cmUuU2Vzc2lvblN0cnVjdHVyZSJKChVQcmVLZXlSZWNvcmRTdHJ1Y3R1cmUS", 
@@ -1980,12 +1980,11 @@ namespace libaxolotl.state {
           
           public const int SignedPreKeyIdFieldNumber = 3;
           private bool hasSignedPreKeyId;
-          private uint signedPreKeyId_;
+          private int signedPreKeyId_;
           public bool HasSignedPreKeyId {
             get { return hasSignedPreKeyId; }
           }
-          [global::System.CLSCompliant(false)]
-          public uint SignedPreKeyId {
+          public int SignedPreKeyId {
             get { return signedPreKeyId_; }
           }
           
@@ -2015,7 +2014,7 @@ namespace libaxolotl.state {
               output.WriteBytes(2, field_names[0], BaseKey);
             }
             if (hasSignedPreKeyId) {
-              output.WriteUInt32(3, field_names[2], SignedPreKeyId);
+              output.WriteInt32(3, field_names[2], SignedPreKeyId);
             }
             UnknownFields.WriteTo(output);
           }
@@ -2038,7 +2037,7 @@ namespace libaxolotl.state {
               size += pb::CodedOutputStream.ComputeUInt32Size(1, PreKeyId);
             }
             if (hasSignedPreKeyId) {
-              size += pb::CodedOutputStream.ComputeUInt32Size(3, SignedPreKeyId);
+              size += pb::CodedOutputStream.ComputeInt32Size(3, SignedPreKeyId);
             }
             if (hasBaseKey) {
               size += pb::CodedOutputStream.ComputeBytesSize(2, BaseKey);
@@ -2226,7 +2225,7 @@ namespace libaxolotl.state {
                     break;
                   }
                   case 24: {
-                    result.hasSignedPreKeyId = input.ReadUInt32(ref result.signedPreKeyId_);
+                    result.hasSignedPreKeyId = input.ReadInt32(ref result.signedPreKeyId_);
                     break;
                   }
                 }
@@ -2264,13 +2263,11 @@ namespace libaxolotl.state {
             public bool HasSignedPreKeyId {
               get { return result.hasSignedPreKeyId; }
             }
-            [global::System.CLSCompliant(false)]
-            public uint SignedPreKeyId {
+            public int SignedPreKeyId {
               get { return result.SignedPreKeyId; }
               set { SetSignedPreKeyId(value); }
             }
-            [global::System.CLSCompliant(false)]
-            public Builder SetSignedPreKeyId(uint value) {
+            public Builder SetSignedPreKeyId(int value) {
               PrepareBuilder();
               result.hasSignedPreKeyId = true;
               result.signedPreKeyId_ = value;

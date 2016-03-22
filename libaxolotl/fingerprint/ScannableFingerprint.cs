@@ -1,24 +1,27 @@
-﻿using System;
+﻿using Google.ProtocolBuffers;
+using System;
+using System.Text;
+using static libaxolotl.fingerprint.FingerprintProtos;
 
 namespace libaxolotl.fingerprint
 {
     public class ScannableFingerprint
     {
-        //private readonly CombinedFingerprint combinedFingerprint;
+        private readonly CombinedFingerprint combinedFingerprint;
 
         public ScannableFingerprint(int version,
                                     String localStableIdentifier, IdentityKey localIdentityKey,
                                     String remoteStableIdentifier, IdentityKey remoteIdentityKey)
         {
-            //this.combinedFingerprint = CombinedFingerprint.newBuilder()
-            //                                              .setVersion(version)
-            //                                              .setLocalFingerprint(FingerprintData.newBuilder()
-            //                                                                                  .setIdentifier(ByteString.copyFrom(localStableIdentifier.getBytes()))
-            //                                                                                  .setPublicKey(ByteString.copyFrom(localIdentityKey.serialize())))
-            //                                              .setRemoteFingerprint(FingerprintData.newBuilder()
-            //                                                                                   .setIdentifier(ByteString.copyFrom(remoteStableIdentifier.getBytes()))
-            //                                                                                   .setPublicKey(ByteString.copyFrom(remoteIdentityKey.serialize())))
-            //                                              .build();
+            this.combinedFingerprint = CombinedFingerprint.CreateBuilder()
+                                                          .SetVersion((uint)version)
+                                                          .SetLocalFingerprint(FingerprintData.CreateBuilder()
+                                                                                              .SetIdentifier(ByteString.CopyFrom(Encoding.ASCII.GetBytes(localStableIdentifier)))
+                                                                                              .SetPublicKey(ByteString.CopyFrom(localIdentityKey.serialize())))
+                                                          .SetRemoteFingerprint(FingerprintData.CreateBuilder()
+                                                                                               .SetIdentifier(ByteString.CopyFrom(Encoding.ASCII.GetBytes(remoteStableIdentifier)))
+                                                                                               .SetPublicKey(ByteString.CopyFrom(remoteIdentityKey.serialize())))
+                                                          .Build();
         }
 
         /**
@@ -26,8 +29,7 @@ namespace libaxolotl.fingerprint
          */
         public byte[] getSerialized()
         {
-            throw new NotImplementedException();
-            //return combinedFingerprint.toByteArray();
+            return combinedFingerprint.ToByteArray();
         }
 
         /**
@@ -42,33 +44,30 @@ namespace libaxolotl.fingerprint
         {
             try
             {
-                //  CombinedFingerprint scannedFingerprint = CombinedFingerprint.parseFrom(scannedFingerprintData);
+                CombinedFingerprint scannedFingerprint = CombinedFingerprint.ParseFrom(scannedFingerprintData);
 
-                //  if (!scannedFingerprint.hasRemoteFingerprint() || !scannedFingerprint.hasLocalFingerprint() ||
-                //      !scannedFingerprint.hasVersion() || scannedFingerprint.getVersion() != combinedFingerprint.getVersion())
-                //  {
-                //    throw new FingerprintVersionMismatchException();
-                //}
+                if (!scannedFingerprint.HasRemoteFingerprint || !scannedFingerprint.HasLocalFingerprint ||
+                    !scannedFingerprint.HasVersion || scannedFingerprint.Version != combinedFingerprint.Version)
+                {
+                    throw new FingerprintVersionMismatchException();
+                }
 
-                //  if (!combinedFingerprint.getLocalFingerprint().getIdentifier().equals(scannedFingerprint.getRemoteFingerprint().getIdentifier()) ||
-                //      !combinedFingerprint.getRemoteFingerprint().getIdentifier().equals(scannedFingerprint.getLocalFingerprint().getIdentifier()))
-                //  {
-                //    throw new FingerprintIdentifierMismatchException(new String(combinedFingerprint.getLocalFingerprint().getIdentifier().toByteArray()),
-                //                                                     new String(combinedFingerprint.getRemoteFingerprint().getIdentifier().toByteArray()),
-                //                                                     new String(scannedFingerprint.getLocalFingerprint().getIdentifier().toByteArray()),
-                //                                                     new String(scannedFingerprint.getRemoteFingerprint().getIdentifier().toByteArray()));
-                //  }
+                if (!combinedFingerprint.LocalFingerprint.Identifier.Equals(scannedFingerprint.RemoteFingerprint.Identifier) ||
+                    !combinedFingerprint.RemoteFingerprint.Identifier.Equals(scannedFingerprint.LocalFingerprint.Identifier))
+                {
+                    throw new FingerprintIdentifierMismatchException(combinedFingerprint.LocalFingerprint.Identifier.ToBase64(),
+                                                                     combinedFingerprint.RemoteFingerprint.Identifier.ToBase64(),
+                                                                     scannedFingerprint.LocalFingerprint.Identifier.ToBase64(),
+                                                                     scannedFingerprint.RemoteFingerprint.Identifier.ToBase64());
+                }
 
-                //  return MessageDigest.isEqual(combinedFingerprint.getLocalFingerprint().toByteArray(), scannedFingerprint.getRemoteFingerprint().toByteArray()) &&
-                //         MessageDigest.isEqual(combinedFingerprint.getRemoteFingerprint().toByteArray(), scannedFingerprint.getLocalFingerprint().toByteArray());
-                //} catch (InvalidProtocolBufferException e) {
-                //  throw new FingerprintParsingException(e);
-                //}
+                return combinedFingerprint.LocalFingerprint.ToByteArray().Equals(scannedFingerprint.RemoteFingerprint.ToByteArray()) &&
+                       combinedFingerprint.RemoteFingerprint.ToByteArray().Equals(scannedFingerprint.LocalFingerprint.ToByteArray());
             }
-            catch
-            { }
-
-            throw new NotImplementedException();
+            catch (InvalidProtocolBufferException e)
+            {
+                throw new FingerprintParsingException(e);
+            }
         }
     }
  }
