@@ -123,14 +123,22 @@
     <Compile Include="ecc\ECPublicKey.cs" />
     <Compile Include="ecc\impl\ICurve25519Provider.cs" />
     <Compile Include="ecc\impl\Curve25519NativeProvider.cs" />
-    <Compile Include="groups\GroupCipher.cs" />
-    <Compile Include="groups\GroupSessionBuilder.cs" />
-    <Compile Include="groups\ratchet\SenderChainKey.cs" />
-    <Compile Include="groups\ratchet\SenderMessageKey.cs" />
-    <Compile Include="groups\SenderKeyName.cs" />
-    <Compile Include="groups\state\SenderKeyRecord.cs" />
-    <Compile Include="groups\state\SenderKeyState.cs" />
-    <Compile Include="groups\state\SenderKeyStore.cs" />
+    <Compile Include="fingerprint\DisplayableFingerprint.cs" />
+    <Compile Include="fingerprint\Fingerprint.cs" />
+    <Compile Include="fingerprint\FingerprintGenerator.cs" />
+    <Compile Include="fingerprint\FingerprintIdentifierMismatchException.cs" />
+    <Compile Include="fingerprint\FingerprintParsingException.cs" />
+    <Compile Include="fingerprint\FingerprintVersionMismatchException.cs" />
+    <Compile Include="fingerprint\NumericFingerprintGenerator.cs" />
+    <Compile Include="fingerprint\ScannableFingerprint.cs" />
+    <Compile Include="fingerprint\groups\GroupCipher.cs" />
+    <Compile Include="fingerprint\groups\GroupSessionBuilder.cs" />
+    <Compile Include="fingerprint\groups\ratchet\SenderChainKey.cs" />
+    <Compile Include="fingerprint\groups\ratchet\SenderMessageKey.cs" />
+    <Compile Include="fingerprint\groups\SenderKeyName.cs" />
+    <Compile Include="fingerprint\groups\state\SenderKeyRecord.cs" />
+    <Compile Include="fingerprint\groups\state\SenderKeyState.cs" />
+    <Compile Include="fingerprint\groups\state\SenderKeyStore.cs" />
     <Compile Include="IdentityKey.cs" />
     <Compile Include="IdentityKeyPair.cs" />
     <Compile Include="InvalidKeyException.cs" />
@@ -186,6 +194,7 @@
     <Compile Include="util\Medium.cs" />
     <Compile Include="util\Pair.cs" />
     <Content Include="Properties\libaxolotl.rd.xml" />
+    <None Include="protobuf\FingerprintProtocol.proto" />
     <None Include="README.md" />
   </ItemGroup>
   <ItemGroup>

@@ -180,8 +180,8 @@ namespace libaxolotl_test
                 .setTheirIdentityKey(aliceIdentityKey.getPublicKey())
                 .create();
 
-            RatchetingSession.initializeSession(aliceSessionState, 2, aliceParameters);
-            RatchetingSession.initializeSession(bobSessionState, 2, bobParameters);
+            RatchetingSession.initializeSession(aliceSessionState, aliceParameters);
+            RatchetingSession.initializeSession(bobSessionState, bobParameters);
         }
 
         private void initializeSessionsV3(SessionState aliceSessionState, SessionState bobSessionState)
@@ -220,8 +220,8 @@ namespace libaxolotl_test
                 .setTheirBaseKey(aliceBaseKey.getPublicKey())
                 .create();
 
-            RatchetingSession.initializeSession(aliceSessionState, 3, aliceParameters);
-            RatchetingSession.initializeSession(bobSessionState, 3, bobParameters);
+            RatchetingSession.initializeSession(aliceSessionState, aliceParameters);
+            RatchetingSession.initializeSession(bobSessionState, bobParameters);
         }
 
         public static void Shuffle<T>(IList<T> list, Random rng)

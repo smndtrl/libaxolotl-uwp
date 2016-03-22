@@ -15,57 +15,61 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-using libaxolotl.ecc;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace libaxolotl
+namespace libaxolotl.groups
 {
     /**
-     * A class for representing an identity key.
-     * 
-     * @author Moxie Marlinspike
+     * A representation of a (groupId + senderId + deviceId) tuple.
      */
-
-    public class IdentityKey
+    public class SenderKeyName
     {
 
-        public ECPublicKey PublicKey { get; private set; }
+        private readonly String groupId;
+        private readonly AxolotlAddress sender;
 
-        public IdentityKey(ECPublicKey publicKey)
+        public SenderKeyName(String groupId, AxolotlAddress sender)
         {
-            this.PublicKey = publicKey;
-        }
-
-        public IdentityKey(byte[] bytes, int offset)
-        {
-            this.PublicKey = Curve.decodePoint(bytes, offset);
-        }
-        public byte[] serialize()
-        {
-            return PublicKey.serialize();
+            this.groupId = groupId;
+            this.sender = sender;
         }
 
-        public String getFingerprint()
+        public String getGroupId()
         {
-            return PublicKey.serialize().ToString(); //Hex
+            return groupId;
         }
+
+        public AxolotlAddress getSender()
+        {
+            return sender;
+        }
+
+        public String serialize()
+        {
+            return groupId + "::" + sender.Name + "::" + sender.DeviceId;
+        }
+
 
         public override bool Equals(Object other)
         {
             if (other == null) return false;
-            if (!(other is IdentityKey)) return false;
+            if (!(other is SenderKeyName)) return false;
 
-            return PublicKey.Equals(((IdentityKey)other).PublicKey);
+            SenderKeyName that = (SenderKeyName)other;
+
+            return
+                this.groupId.Equals(that.groupId) &&
+                this.sender.Equals(that.sender);
         }
-
 
         public override int GetHashCode()
         {
-            return PublicKey.GetHashCode();
+            return this.groupId.GetHashCode() ^ this.sender.GetHashCode();
         }
+
     }
 }

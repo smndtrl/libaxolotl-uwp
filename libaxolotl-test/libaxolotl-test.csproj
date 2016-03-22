@@ -99,6 +99,7 @@
     <Compile Include="BasicTests.cs" />
     <Compile Include="DateUtil.cs" />
     <Compile Include="ecc\Curve25519Test.cs" />
+    <Compile Include="fingerprint\NumericFingerprintGeneratorTest.cs" />
     <Compile Include="groups\GroupCipherTest.cs" />
     <Compile Include="groups\InMemorySenderKeyStore.cs" />
     <Compile Include="kdf\HKDFTest.cs" />

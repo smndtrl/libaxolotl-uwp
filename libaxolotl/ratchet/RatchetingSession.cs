@@ -17,6 +17,7 @@
 
 using libaxolotl.ecc;
 using libaxolotl.kdf;
+using libaxolotl.protocol;
 using libaxolotl.state;
 using libaxolotl.util;
 using Strilanc.Value;
@@ -32,9 +33,7 @@ namespace libaxolotl.ratchet
     public class RatchetingSession
     {
 
-        public static void initializeSession(SessionState sessionState,
-                                             uint sessionVersion,
-                                             SymmetricAxolotlParameters parameters)
+        public static void initializeSession(SessionState sessionState, SymmetricAxolotlParameters parameters)
         {
             if (isAlice(parameters.getOurBaseKey().getPublicKey(), parameters.getTheirBaseKey()))
             {
@@ -47,7 +46,7 @@ namespace libaxolotl.ratchet
                                .setTheirSignedPreKey(parameters.getTheirBaseKey())
                                .setTheirOneTimePreKey(May<ECPublicKey>.NoValue);
 
-                RatchetingSession.initializeSession(sessionState, sessionVersion, aliceParameters.create());
+                RatchetingSession.initializeSession(sessionState, aliceParameters.create());
             }
             else
             {
@@ -60,50 +59,41 @@ namespace libaxolotl.ratchet
                              .setTheirBaseKey(parameters.getTheirBaseKey())
                              .setTheirIdentityKey(parameters.getTheirIdentityKey());
 
-                RatchetingSession.initializeSession(sessionState, sessionVersion, bobParameters.create());
+                RatchetingSession.initializeSession(sessionState, bobParameters.create());
             }
         }
 
-        public static void initializeSession(SessionState sessionState,
-                                             uint sessionVersion,
-                                             AliceAxolotlParameters parameters)
+        public static void initializeSession(SessionState sessionState, AliceAxolotlParameters parameters)
 
         {
             try
             {
-                sessionState.setSessionVersion(sessionVersion);
+                sessionState.setSessionVersion(CiphertextMessage.CURRENT_VERSION);
                 sessionState.setRemoteIdentityKey(parameters.getTheirIdentityKey());
                 sessionState.setLocalIdentityKey(parameters.getOurIdentityKey().getPublicKey());
 
                 ECKeyPair sendingRatchetKey = Curve.generateKeyPair();
                 MemoryStream secrets = new MemoryStream();
-
-                if (sessionVersion >= 3)
-                {
-                    byte[] discontinuityBytes = getDiscontinuityBytes();
-                    secrets.Write(discontinuityBytes, 0, discontinuityBytes.Length);
-                }
+                
+                byte[] discontinuityBytes = getDiscontinuityBytes();
+                secrets.Write(discontinuityBytes, 0, discontinuityBytes.Length);
 
                 byte[] agree1 = Curve.calculateAgreement(parameters.getTheirSignedPreKey(),
                                                        parameters.getOurIdentityKey().getPrivateKey());
-                byte[] agree2 = Curve.calculateAgreement(parameters.getTheirIdentityKey().getPublicKey(),
+                byte[] agree2 = Curve.calculateAgreement(parameters.getTheirIdentityKey().PublicKey,
                                                         parameters.getOurBaseKey().getPrivateKey());
                 byte[] agree3 = Curve.calculateAgreement(parameters.getTheirSignedPreKey(),
+                                                       parameters.getOurBaseKey().getPrivateKey());
+
+                byte[] agree4 = Curve.calculateAgreement(parameters.getTheirOneTimePreKey().ForceGetValue(),
                                                        parameters.getOurBaseKey().getPrivateKey());
 
                 secrets.Write(agree1, 0, agree1.Length);
                 secrets.Write(agree2, 0, agree2.Length);
                 secrets.Write(agree3, 0, agree3.Length);
+                 secrets.Write(agree4, 0, agree4.Length);
 
-
-                if (sessionVersion >= 3 && parameters.getTheirOneTimePreKey().HasValue)
-                {
-                    byte[] agree4 = Curve.calculateAgreement(parameters.getTheirOneTimePreKey().ForceGetValue(),
-                                                           parameters.getOurBaseKey().getPrivateKey());
-                    secrets.Write(agree4, 0, agree4.Length);
-                }
-
-                DerivedKeys derivedKeys = calculateDerivedKeys(sessionVersion, secrets.ToArray());
+                DerivedKeys derivedKeys = calculateDerivedKeys(secrets.ToArray());
                 Pair<RootKey, ChainKey> sendingChain = derivedKeys.getRootKey().createChain(parameters.getTheirRatchetKey(), sendingRatchetKey);
 
                 sessionState.addReceiverChain(parameters.getTheirRatchetKey(), derivedKeys.getChainKey());
@@ -116,43 +106,35 @@ namespace libaxolotl.ratchet
             }
         }
 
-        public static void initializeSession(SessionState sessionState,
-                                             uint sessionVersion,
-                                             BobAxolotlParameters parameters)
+        public static void initializeSession(SessionState sessionState,BobAxolotlParameters parameters)
         {
 
             try
             {
-                sessionState.setSessionVersion(sessionVersion);
+                sessionState.setSessionVersion(CiphertextMessage.CURRENT_VERSION);
                 sessionState.setRemoteIdentityKey(parameters.getTheirIdentityKey());
                 sessionState.setLocalIdentityKey(parameters.getOurIdentityKey().getPublicKey());
 
                 MemoryStream secrets = new MemoryStream();
+                
+                byte[] discontinuityBytes = getDiscontinuityBytes();
+                secrets.Write(discontinuityBytes, 0, discontinuityBytes.Length);
 
-                if (sessionVersion >= 3)
-                {
-                    byte[] discontinuityBytes = getDiscontinuityBytes();
-                    secrets.Write(discontinuityBytes, 0, discontinuityBytes.Length);
-                }
-
-                byte[] agree1 = Curve.calculateAgreement(parameters.getTheirIdentityKey().getPublicKey(),
+                byte[] agree1 = Curve.calculateAgreement(parameters.getTheirIdentityKey().PublicKey,
                                                        parameters.getOurSignedPreKey().getPrivateKey());
                 byte[] agree2 = Curve.calculateAgreement(parameters.getTheirBaseKey(),
                                                        parameters.getOurIdentityKey().getPrivateKey());
                 byte[] agree3 = Curve.calculateAgreement(parameters.getTheirBaseKey(),
                                                        parameters.getOurSignedPreKey().getPrivateKey());
+                byte[] agree4 = Curve.calculateAgreement(parameters.getTheirBaseKey(),
+                                                       parameters.getOurOneTimePreKey().ForceGetValue().getPrivateKey());
+
                 secrets.Write(agree1, 0, agree1.Length);
                 secrets.Write(agree2, 0, agree2.Length);
                 secrets.Write(agree3, 0, agree3.Length);
+                secrets.Write(agree4, 0, agree4.Length);
 
-                if (sessionVersion >= 3 && parameters.getOurOneTimePreKey().HasValue)
-                {
-                    byte[] agree4 = Curve.calculateAgreement(parameters.getTheirBaseKey(),
-                                                           parameters.getOurOneTimePreKey().ForceGetValue().getPrivateKey());
-                    secrets.Write(agree4, 0, agree4.Length);
-                }
-
-                DerivedKeys derivedKeys = calculateDerivedKeys(sessionVersion, secrets.ToArray());
+                DerivedKeys derivedKeys = calculateDerivedKeys(secrets.ToArray());
 
                 sessionState.setSenderChain(parameters.getOurRatchetKey(), derivedKeys.getChainKey());
                 sessionState.setRootKey(derivedKeys.getRootKey());
@@ -174,9 +156,9 @@ namespace libaxolotl.ratchet
             return discontinuity;
         }
 
-        private static DerivedKeys calculateDerivedKeys(uint sessionVersion, byte[] masterSecret)
+        private static DerivedKeys calculateDerivedKeys(byte[] masterSecret)
         {
-            HKDF kdf = HKDF.createFor(sessionVersion);
+            HKDF kdf = new HKDFv3();
             byte[] derivedSecretBytes = kdf.deriveSecrets(masterSecret, Encoding.UTF8.GetBytes("WhisperText"), 64);
             byte[][] derivedSecrets = ByteUtil.split(derivedSecretBytes, 32, 32);
 
