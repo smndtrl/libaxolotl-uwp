@@ -51,15 +51,19 @@ namespace libaxolotl.protocol
                     throw new InvalidVersionException("Unknown version: " + this.version);
                 }
 
+                if (this.version < CiphertextMessage.CURRENT_VERSION)
+                {
+                    throw new LegacyMessageException("Legacy version: " + this.version);
+                }
+
                 WhisperProtos.PreKeyWhisperMessage preKeyWhisperMessage
                     = WhisperProtos.PreKeyWhisperMessage.ParseFrom(ByteString.CopyFrom(serialized, 1,
                                                                                        serialized.Length - 1));
 
-                if ((version == 2 && !preKeyWhisperMessage.HasPreKeyId) ||
-                    (version == 3 && !preKeyWhisperMessage.HasSignedPreKeyId) ||
-                    !preKeyWhisperMessage.HasBaseKey ||
-                    !preKeyWhisperMessage.HasIdentityKey ||
-                    !preKeyWhisperMessage.HasMessage)
+                if (!preKeyWhisperMessage.HasSignedPreKeyId ||
+                        !preKeyWhisperMessage.HasBaseKey ||
+                        !preKeyWhisperMessage.HasIdentityKey ||
+                        !preKeyWhisperMessage.HasMessage)
                 {
                     throw new InvalidMessageException("Incomplete message.");
                 }

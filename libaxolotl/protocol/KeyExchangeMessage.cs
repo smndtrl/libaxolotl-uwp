@@ -82,7 +82,7 @@ namespace libaxolotl.protocol
                 this.version = (uint)ByteUtil.highBitsToInt(parts[0][0]);
                 this.supportedVersion = (uint)ByteUtil.lowBitsToInt(parts[0][0]);
 
-                if (this.version <= CiphertextMessage.UNSUPPORTED_VERSION)
+                if (this.version <= CiphertextMessage.CURRENT_VERSION)
                 {
                     throw new LegacyMessageException("Unsupported legacy version: " + this.version);
                 }
@@ -96,7 +96,7 @@ namespace libaxolotl.protocol
 
                 if (!message.HasId || !message.HasBaseKey ||
                     !message.HasRatchetKey || !message.HasIdentityKey ||
-                    (this.version >= 3 && !message.HasBaseKeySignature))
+                    !message.HasBaseKeySignature)
                 {
                     throw new InvalidMessageException("Some required fields missing!");
                 }

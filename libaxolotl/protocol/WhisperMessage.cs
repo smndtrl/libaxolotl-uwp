@@ -147,9 +147,9 @@ namespace libaxolotl.protocol
                 MemoryStream stream = new MemoryStream();
                 if (messageVersion >= 3)
                 {
-                    byte[] sik = senderIdentityKey.getPublicKey().serialize();
+                    byte[] sik = senderIdentityKey.PublicKey.serialize();
                     stream.Write(sik, 0, sik.Length);
-                    byte[] rik = receiverIdentityKey.getPublicKey().serialize();
+                    byte[] rik = receiverIdentityKey.PublicKey.serialize();
                     stream.Write(rik, 0, rik.Length);
                 }
 

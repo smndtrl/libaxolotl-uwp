@@ -33,31 +33,25 @@ namespace libaxolotl
     public class IdentityKey
     {
 
-        private ECPublicKey publicKey { get; set; }
+        public ECPublicKey PublicKey { get; private set; }
 
         public IdentityKey(ECPublicKey publicKey)
         {
-            this.publicKey = publicKey;
+            this.PublicKey = publicKey;
         }
 
         public IdentityKey(byte[] bytes, int offset)
         {
-            this.publicKey = Curve.decodePoint(bytes, offset);
+            this.PublicKey = Curve.decodePoint(bytes, offset);
         }
-
-        public ECPublicKey getPublicKey()
-        {
-            return publicKey;
-        }
-
         public byte[] serialize()
         {
-            return publicKey.serialize();
+            return PublicKey.serialize();
         }
 
         public String getFingerprint()
         {
-            return publicKey.serialize().ToString(); //Hex
+            return PublicKey.serialize().ToString(); //Hex
         }
 
         public override bool Equals(Object other)
@@ -65,13 +59,13 @@ namespace libaxolotl
             if (other == null) return false;
             if (!(other is IdentityKey)) return false;
 
-            return publicKey.Equals(((IdentityKey)other).getPublicKey());
+            return PublicKey.Equals(((IdentityKey)other).PublicKey);
         }
 
 
         public override int GetHashCode()
         {
-            return publicKey.GetHashCode();
+            return PublicKey.GetHashCode();
         }
     }
 }
