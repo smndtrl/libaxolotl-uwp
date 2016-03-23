@@ -24,13 +24,12 @@ namespace libaxolotl_test.fingerprint
 
             NumericFingerprintGenerator generator = new NumericFingerprintGenerator(1024);
             Fingerprint aliceFingerprint = generator.createFor("+14152222222", aliceIdentityKey,
-                                                                               "+14153333333", bobIdentityKey);
+                                                                "+14153333333", bobIdentityKey);
 
             Fingerprint bobFingerprint = generator.createFor("+14153333333", bobIdentityKey,
-                                                             "+14152222222", aliceIdentityKey);
+                                                            "+14152222222", aliceIdentityKey);
 
-            Assert.AreEqual(aliceFingerprint.getDisplayableFingerprint().getDisplayText(),
-                         bobFingerprint.getDisplayableFingerprint().getDisplayText());
+            Assert.AreEqual(aliceFingerprint.getDisplayableFingerprint().getDisplayText(), bobFingerprint.getDisplayableFingerprint().getDisplayText());
 
             Assert.IsTrue(aliceFingerprint.getScannableFingerprint().compareTo(bobFingerprint.getScannableFingerprint().getSerialized()));
             Assert.IsTrue(bobFingerprint.getScannableFingerprint().compareTo(aliceFingerprint.getScannableFingerprint().getSerialized()));
@@ -84,7 +83,6 @@ namespace libaxolotl_test.fingerprint
 
             try
             {
-                ;
                 aliceFingerprint.getScannableFingerprint().compareTo(bobFingerprint.getScannableFingerprint().getSerialized());
                 throw new Exception("Should mismatch!");
             }

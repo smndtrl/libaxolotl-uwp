@@ -1,5 +1,6 @@
 ﻿using Google.ProtocolBuffers;
 using System;
+using System.Linq;
 using System.Text;
 using static libaxolotl.fingerprint.FingerprintProtos;
 
@@ -61,8 +62,8 @@ namespace libaxolotl.fingerprint
                                                                      scannedFingerprint.RemoteFingerprint.Identifier.ToBase64());
                 }
 
-                return combinedFingerprint.LocalFingerprint.ToByteArray().Equals(scannedFingerprint.RemoteFingerprint.ToByteArray()) &&
-                       combinedFingerprint.RemoteFingerprint.ToByteArray().Equals(scannedFingerprint.LocalFingerprint.ToByteArray());
+                return combinedFingerprint.LocalFingerprint.ToByteArray().SequenceEqual(scannedFingerprint.RemoteFingerprint.ToByteArray()) &&
+                       combinedFingerprint.RemoteFingerprint.ToByteArray().SequenceEqual(scannedFingerprint.LocalFingerprint.ToByteArray());
             }
             catch (InvalidProtocolBufferException e)
             {
