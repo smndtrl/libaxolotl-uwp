@@ -80,18 +80,23 @@ namespace libaxolotl.ratchet
 
                 byte[] agree1 = Curve.calculateAgreement(parameters.getTheirSignedPreKey(),
                                                        parameters.getOurIdentityKey().getPrivateKey());
+                secrets.Write(agree1, 0, agree1.Length);
+
                 byte[] agree2 = Curve.calculateAgreement(parameters.getTheirIdentityKey().PublicKey,
                                                         parameters.getOurBaseKey().getPrivateKey());
+                secrets.Write(agree2, 0, agree2.Length);
+
                 byte[] agree3 = Curve.calculateAgreement(parameters.getTheirSignedPreKey(),
                                                        parameters.getOurBaseKey().getPrivateKey());
-
-                byte[] agree4 = Curve.calculateAgreement(parameters.getTheirOneTimePreKey().ForceGetValue(),
-                                                       parameters.getOurBaseKey().getPrivateKey());
-
-                secrets.Write(agree1, 0, agree1.Length);
-                secrets.Write(agree2, 0, agree2.Length);
                 secrets.Write(agree3, 0, agree3.Length);
-                 secrets.Write(agree4, 0, agree4.Length);
+
+                if (parameters.getTheirOneTimePreKey().HasValue)
+                {
+                    byte[] agree4 = Curve.calculateAgreement(parameters.getTheirOneTimePreKey().ForceGetValue(),
+                                                       parameters.getOurBaseKey().getPrivateKey());
+                    secrets.Write(agree4, 0, agree4.Length);
+                }
+
 
                 DerivedKeys derivedKeys = calculateDerivedKeys(secrets.ToArray());
                 Pair<RootKey, ChainKey> sendingChain = derivedKeys.getRootKey().createChain(parameters.getTheirRatchetKey(), sendingRatchetKey);
@@ -106,7 +111,7 @@ namespace libaxolotl.ratchet
             }
         }
 
-        public static void initializeSession(SessionState sessionState,BobAxolotlParameters parameters)
+        public static void initializeSession(SessionState sessionState, BobAxolotlParameters parameters)
         {
 
             try
@@ -122,17 +127,22 @@ namespace libaxolotl.ratchet
 
                 byte[] agree1 = Curve.calculateAgreement(parameters.getTheirIdentityKey().PublicKey,
                                                        parameters.getOurSignedPreKey().getPrivateKey());
+                secrets.Write(agree1, 0, agree1.Length);
+
                 byte[] agree2 = Curve.calculateAgreement(parameters.getTheirBaseKey(),
                                                        parameters.getOurIdentityKey().getPrivateKey());
+                secrets.Write(agree2, 0, agree2.Length);
                 byte[] agree3 = Curve.calculateAgreement(parameters.getTheirBaseKey(),
                                                        parameters.getOurSignedPreKey().getPrivateKey());
-                byte[] agree4 = Curve.calculateAgreement(parameters.getTheirBaseKey(),
-                                                       parameters.getOurOneTimePreKey().ForceGetValue().getPrivateKey());
-
-                secrets.Write(agree1, 0, agree1.Length);
-                secrets.Write(agree2, 0, agree2.Length);
                 secrets.Write(agree3, 0, agree3.Length);
-                secrets.Write(agree4, 0, agree4.Length);
+
+                if (parameters.getOurOneTimePreKey().HasValue)
+                {
+                    byte[] agree4 = Curve.calculateAgreement(parameters.getTheirBaseKey(),
+                                                           parameters.getOurOneTimePreKey().ForceGetValue().getPrivateKey());
+                    secrets.Write(agree4, 0, agree4.Length);
+                }
+
 
                 DerivedKeys derivedKeys = calculateDerivedKeys(secrets.ToArray());
 

@@ -199,7 +199,7 @@ namespace libaxolotl
                 SessionRecord sessionRecord = sessionStore.LoadSession(remoteAddress);
                 ECKeyPair ourBaseKey = Curve.generateKeyPair();
                 ECPublicKey theirSignedPreKey = preKey.getSignedPreKey();
-                May<ECPublicKey> theirOneTimePreKey = (preKey == null) ? May<ECPublicKey>.NoValue : new May<ECPublicKey>(preKey.getPreKey());
+                May<ECPublicKey> theirOneTimePreKey = (preKey.getPreKey() == null) ? May<ECPublicKey>.NoValue : new May<ECPublicKey>(preKey.getPreKey());
                 May<uint> theirOneTimePreKeyId = theirOneTimePreKey.HasValue ? new May<uint>(preKey.getPreKeyId()) :
                                                                                               May<uint>.NoValue;
 
