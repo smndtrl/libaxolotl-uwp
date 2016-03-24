@@ -104,23 +104,14 @@ namespace libaxolotl
         /*package*/
         internal May<uint>  process(SessionRecord sessionRecord, PreKeyWhisperMessage message)
         {
-            uint messageVersion = message.getMessageVersion();
             IdentityKey theirIdentityKey = message.getIdentityKey();
-
-            May<uint> unsignedPreKeyId;
 
             if (!identityKeyStore.IsTrustedIdentity(remoteAddress.Name, theirIdentityKey))
             {
                 throw new UntrustedIdentityException(remoteAddress.Name, theirIdentityKey);
             }
 
-            switch (messageVersion)
-            {
-                case 2: unsignedPreKeyId = processV2(sessionRecord, message); break;
-                case 3: unsignedPreKeyId = processV3(sessionRecord, message); break;
-                default: throw new Exception("Unknown version: " + messageVersion);
-            }
-
+            May<uint> unsignedPreKeyId = processV3(sessionRecord, message);
             identityKeyStore.SaveIdentity(remoteAddress.Name, theirIdentityKey);
             return unsignedPreKeyId;
         }
@@ -155,7 +146,7 @@ namespace libaxolotl
 
             if (!sessionRecord.isFresh()) sessionRecord.archiveCurrentState();
 
-            RatchetingSession.initializeSession(sessionRecord.getSessionState(), message.getMessageVersion(), parameters.create());
+            RatchetingSession.initializeSession(sessionRecord.getSessionState(), parameters.create());
 
             sessionRecord.getSessionState().setLocalRegistrationId(identityKeyStore.GetLocalRegistrationId());
             sessionRecord.getSessionState().setRemoteRegistrationId(message.getRegistrationId());
@@ -171,49 +162,7 @@ namespace libaxolotl
             }
         }
 
-        private May<uint> processV2(SessionRecord sessionRecord, PreKeyWhisperMessage message)
-        {
-            if (!message.getPreKeyId().HasValue)
-            {
-                throw new InvalidKeyIdException("V2 message requires one time prekey id!");
-            }
-
-            if (!preKeyStore.ContainsPreKey(message.getPreKeyId().ForceGetValue()) &&
-                sessionStore.ContainsSession(remoteAddress))
-            {
-                //Log.w(TAG, "We've already processed the prekey part of this V2 session, letting bundled message fall through...");
-                return May<uint>.NoValue; //May.absent();
-            }
-
-            ECKeyPair ourPreKey = preKeyStore.LoadPreKey(message.getPreKeyId().ForceGetValue()).getKeyPair();
-
-            BobAxolotlParameters.Builder parameters = BobAxolotlParameters.newBuilder();
-
-            parameters.setOurIdentityKey(identityKeyStore.GetIdentityKeyPair())
-                          .setOurSignedPreKey(ourPreKey)
-                          .setOurRatchetKey(ourPreKey)
-                          .setOurOneTimePreKey(May<ECKeyPair>.NoValue) //absent
-                          .setTheirIdentityKey(message.getIdentityKey())
-                          .setTheirBaseKey(message.getBaseKey());
-
-            if (!sessionRecord.isFresh()) sessionRecord.archiveCurrentState();
-
-            RatchetingSession.initializeSession(sessionRecord.getSessionState(), message.getMessageVersion(), parameters.create());
-
-            sessionRecord.getSessionState().setLocalRegistrationId(identityKeyStore.GetLocalRegistrationId());
-            sessionRecord.getSessionState().setRemoteRegistrationId(message.getRegistrationId());
-            sessionRecord.getSessionState().setAliceBaseKey(message.getBaseKey().serialize());
-
-            if (message.getPreKeyId().ForceGetValue() != Medium.MAX_VALUE)
-            {
-                return message.getPreKeyId();
-            }
-            else
-            {
-                return May<uint>.NoValue; // May.absent();
-            }
-        }
-
+    
         /**
          * Build a new session from a {@link org.whispersystems.libaxolotl.state.PreKeyBundle} retrieved from
          * a server.
@@ -235,24 +184,22 @@ namespace libaxolotl
                 }
 
                 if (preKey.getSignedPreKey() != null &&
-                    !Curve.verifySignature(preKey.getIdentityKey().getPublicKey(),
+                    !Curve.verifySignature(preKey.getIdentityKey().PublicKey,
                                            preKey.getSignedPreKey().serialize(),
                                            preKey.getSignedPreKeySignature()))
                 {
                     throw new InvalidKeyException("Invalid signature on device key!");
                 }
 
-                if (preKey.getSignedPreKey() == null && preKey.getPreKey() == null)
+                if (preKey.getSignedPreKey() == null)
                 {
-                    throw new InvalidKeyException("Both signed and unsigned prekeys are absent!");
+                    throw new InvalidKeyException("No signed prekey!");
                 }
-
-                bool supportsV3 = preKey.getSignedPreKey() != null;
+                
                 SessionRecord sessionRecord = sessionStore.LoadSession(remoteAddress);
                 ECKeyPair ourBaseKey = Curve.generateKeyPair();
-                ECPublicKey theirSignedPreKey = supportsV3 ? preKey.getSignedPreKey() : preKey.getPreKey();
-                ECPublicKey test = preKey.getPreKey(); // TODO: cleanup
-                May<ECPublicKey> theirOneTimePreKey = (test == null) ? May<ECPublicKey>.NoValue : new May<ECPublicKey>(test);
+                ECPublicKey theirSignedPreKey = preKey.getSignedPreKey();
+                May<ECPublicKey> theirOneTimePreKey = (preKey.getPreKey() == null) ? May<ECPublicKey>.NoValue : new May<ECPublicKey>(preKey.getPreKey());
                 May<uint> theirOneTimePreKeyId = theirOneTimePreKey.HasValue ? new May<uint>(preKey.getPreKeyId()) :
                                                                                               May<uint>.NoValue;
 
@@ -263,13 +210,11 @@ namespace libaxolotl
                               .setTheirIdentityKey(preKey.getIdentityKey())
                               .setTheirSignedPreKey(theirSignedPreKey)
                               .setTheirRatchetKey(theirSignedPreKey)
-                              .setTheirOneTimePreKey(supportsV3 ? theirOneTimePreKey : May<ECPublicKey>.NoValue);
+                              .setTheirOneTimePreKey(theirOneTimePreKey);
 
                 if (!sessionRecord.isFresh()) sessionRecord.archiveCurrentState();
 
-                RatchetingSession.initializeSession(sessionRecord.getSessionState(),
-                                                    supportsV3 ? (uint)3 : 2,
-                                                    parameters.create());
+                RatchetingSession.initializeSession(sessionRecord.getSessionState(), parameters.create());
 
                 sessionRecord.getSessionState().setUnacknowledgedPreKeyMessage(theirOneTimePreKeyId, preKey.getSignedPreKeyId(), ourBaseKey.getPublicKey());
                 sessionRecord.getSessionState().setLocalRegistrationId(identityKeyStore.GetLocalRegistrationId());
@@ -313,8 +258,7 @@ namespace libaxolotl
             uint flags = KeyExchangeMessage.RESPONSE_FLAG;
             SessionRecord sessionRecord = sessionStore.LoadSession(remoteAddress);
 
-            if (message.getVersion() >= 3 &&
-                !Curve.verifySignature(message.getIdentityKey().getPublicKey(),
+            if (!Curve.verifySignature(message.getIdentityKey().PublicKey,
                                        message.getBaseKey().serialize(),
                                        message.getBaseKeySignature()))
             {
@@ -345,9 +289,7 @@ namespace libaxolotl
 
             if (!sessionRecord.isFresh()) sessionRecord.archiveCurrentState();
 
-            RatchetingSession.initializeSession(sessionRecord.getSessionState(),
-                                                Math.Min(message.getMaxVersion(), CiphertextMessage.CURRENT_VERSION),
-                                                parameters);
+            RatchetingSession.initializeSession(sessionRecord.getSessionState(), parameters);
 
             sessionStore.StoreSession(remoteAddress, sessionRecord);
             identityKeyStore.SaveIdentity(remoteAddress.Name, message.getIdentityKey());
@@ -387,12 +329,9 @@ namespace libaxolotl
 
             if (!sessionRecord.isFresh()) sessionRecord.archiveCurrentState();
 
-            RatchetingSession.initializeSession(sessionRecord.getSessionState(),
-                                                Math.Min(message.getMaxVersion(), CiphertextMessage.CURRENT_VERSION),
-                                                parameters.create());
+            RatchetingSession.initializeSession(sessionRecord.getSessionState(), parameters.create());
 
-            if (sessionRecord.getSessionState().getSessionVersion() >= 3 &&
-                !Curve.verifySignature(message.getIdentityKey().getPublicKey(),
+            if (!Curve.verifySignature(message.getIdentityKey().PublicKey,
                                        message.getBaseKey().serialize(),
                                        message.getBaseKeySignature()))
             {
@@ -401,7 +340,6 @@ namespace libaxolotl
 
             sessionStore.StoreSession(remoteAddress, sessionRecord);
             identityKeyStore.SaveIdentity(remoteAddress.Name, message.getIdentityKey());
-
         }
 
         /**
@@ -426,8 +364,9 @@ namespace libaxolotl
                     sessionRecord.getSessionState().setPendingKeyExchange(sequence, baseKey, ratchetKey, identityKey);
                     sessionStore.StoreSession(remoteAddress, sessionRecord);
 
-                    return new KeyExchangeMessage(2, sequence, flags, baseKey.getPublicKey(), baseKeySignature,
-                                                  ratchetKey.getPublicKey(), identityKey.getPublicKey());
+                    return new KeyExchangeMessage(CiphertextMessage.CURRENT_VERSION,
+                                                    sequence, flags, baseKey.getPublicKey(), baseKeySignature,
+                                                    ratchetKey.getPublicKey(), identityKey.getPublicKey());
                 }
                 catch (InvalidKeyException e)
                 {

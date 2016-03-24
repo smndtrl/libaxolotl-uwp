@@ -136,7 +136,7 @@ namespace libaxolotl_test
 
             SessionState session = new SessionState();
 
-            RatchetingSession.initializeSession(session, 2, parameters);
+            RatchetingSession.initializeSession(session, parameters);
 
             Assert.AreEqual(session.getLocalIdentityKey(), bobIdentityKey.getPublicKey());
             Assert.AreEqual(session.getRemoteIdentityKey(), aliceIdentityPublicKey);
@@ -269,7 +269,7 @@ namespace libaxolotl_test
                 .setTheirOneTimePreKey(May<ECPublicKey>.NoValue)
                 .create();
 
-            RatchetingSession.initializeSession(session, 2, parameters);
+            RatchetingSession.initializeSession(session, parameters);
 
             Assert.AreEqual(session.getLocalIdentityKey(), aliceIdentityKey.getPublicKey());
             Assert.AreEqual(session.getRemoteIdentityKey(), bobIdentityKey);
